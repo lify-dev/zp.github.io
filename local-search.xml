@@ -11,6 +11,12 @@
     <content type="html"><![CDATA[<p>这是我的第一篇文章，它只是用来测试的</p>]]></content>
     
     
+    <categories>
+      
+      <category>其它</category>
+      
+    </categories>
+    
     
     <tags>
       
