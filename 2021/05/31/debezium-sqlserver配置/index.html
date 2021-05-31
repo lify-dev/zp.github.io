@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  <title>debezium sqlserver配置 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_pjno9b9zyxs.css">
+
+
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>peacePiz</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="iconfont icon-home-fill"></i>
+              首页</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">
+              <i class="iconfont icon-archive-fill"></i>
+              归档</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">
+              <i class="iconfont icon-category-fill"></i>
+              分类</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">
+              <i class="iconfont icon-tags-fill"></i>
+              标签</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">
+              <i class="iconfont icon-user-fill"></i>
+              关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/img/post.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <div class="mt-3 post-meta">
+                  <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+                  <time datetime="2021-05-31 10:00">
+                    2021年5月31日 上午
+                  </time>
+                </div>
+              
+
+              <div class="mt-1">
+                
+                  
+                  <span class="post-meta mr-2">
+                    <i class="iconfont icon-chart"></i>
+                    3.1k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta mr-2">
+                      <i class="iconfont icon-clock-fill"></i>
+                    
+                    
+                    60
+                     分钟
+                  </span>
+                
+
+                
+              </div>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <article class="markdown-body">
+              <p>Debezium SQL Server连接器具有许多配置属性，可用于为应用程序实现正确的连接器行为。许多属性都有默认值。</p>
+<p>除非提供默认值，否则以下配置属性是必需的。</p>
+<table>
+<thead>
+<tr>
+<th><strong>Property</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-name" target="_blank" rel="noopener"><code>name</code></a></td>
+<td></td>
+<td>Unique name for the connector. Attempting to register again with the same name will fail. (This property is required by all Kafka Connect connectors.)</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-connector-class" target="_blank" rel="noopener"><code>connector.class</code></a></td>
+<td></td>
+<td>The name of the Java class for the connector. Always use a value of <code>io.debezium.connector.sqlserver.SqlServerConnector</code> for the SQL Server connector.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-tasks-max" target="_blank" rel="noopener"><code>tasks.max</code></a></td>
+<td><code>1</code></td>
+<td>The maximum number of tasks that should be created for this connector. The SQL Server connector always uses a single task and therefore does not use this value, so the default is always acceptable.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-database-hostname" target="_blank" rel="noopener"><code>database.hostname</code></a></td>
+<td></td>
+<td>IP address or hostname of the SQL Server database server.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-database-port" target="_blank" rel="noopener"><code>database.port</code></a></td>
+<td><code>1433</code></td>
+<td>Integer port number of the SQL Server database server.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-database-user" target="_blank" rel="noopener"><code>database.user</code></a></td>
+<td></td>
+<td>Username to use when connecting to the SQL Server database server.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-database-password" target="_blank" rel="noopener"><code>database.password</code></a></td>
+<td></td>
+<td>Password to use when connecting to the SQL Server database server.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-database-dbname" target="_blank" rel="noopener"><code>database.dbname</code></a></td>
+<td></td>
+<td>The name of the SQL Server database from which to stream the changes</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-database-server-name" target="_blank" rel="noopener"><code>database.server.name</code></a></td>
+<td></td>
+<td>Logical name that identifies and provides a namespace for the SQL Server database server that you want Debezium to capture. The logical name should be unique across all other connectors, since it is used as a prefix for all Kafka topic names emanating from this connector. Only alphanumeric characters, hyphens and underscores must be used.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-database-history-kafka-topic" target="_blank" rel="noopener"><code>database.history.kafka.topic</code></a></td>
+<td></td>
+<td>The full name of the Kafka topic where the connector will store the database schema history.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-database-history-kafka-bootstrap-servers" target="_blank" rel="noopener"><code>database.history.kafka.bootstrap.servers</code></a></td>
+<td></td>
+<td>A list of host and port pairs that the connector will use for establishing an initial connection to the Kafka cluster. This connection is used for retrieving database schema history previously stored by the connector, and for writing each DDL statement read from the source database. This should point to the same Kafka cluster used by the Kafka Connect process.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-table-include-list" target="_blank" rel="noopener"><code>table.include.list</code></a></td>
+<td></td>
+<td>An optional comma-separated list of regular expressions that match fully-qualified table identifiers for tables that you want Debezium to capture; any table that is not included in <code>table.include.list</code> is excluded from capture. Each identifier is of the form <em>schemaName</em>.<em>tableName</em>. By default, the connector captures all non-system tables for the designated schemas. Must not be used with <code>table.exclude.list</code>.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-table-exclude-list" target="_blank" rel="noopener"><code>table.exclude.list</code></a></td>
+<td></td>
+<td>An optional comma-separated list of regular expressions that match fully-qualified table identifiers for the tables that you want to exclude from being captured; Debezium captures all tables that are not included in <code>table.exclude.list</code>. Each identifier is of the form <em>schemaName</em>.<em>tableName</em>. Must not be used with <code>table.include.list</code>.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-column-include-list" target="_blank" rel="noopener"><code>column.include.list</code></a></td>
+<td><em>empty string</em></td>
+<td>An optional comma-separated list of regular expressions that match the fully-qualified names of columns that should be included in the change event message values. Fully-qualified names for columns are of the form <em>schemaName</em>.<em>tableName</em>.<em>columnName</em>. Note that primary key columns are always included in the event’s key, even if not included in the value. Do not also set the <code>column.exclude.list</code> property.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-column-exclude-list" target="_blank" rel="noopener"><code>column.exclude.list</code></a></td>
+<td><em>empty string</em></td>
+<td>An optional comma-separated list of regular expressions that match the fully-qualified names of columns that should be excluded from change event message values. Fully-qualified names for columns are of the form <em>schemaName</em>.<em>tableName</em>.<em>columnName</em>. Note that primary key columns are always included in the event’s key, also if excluded from the value. Do not also set the <code>column.include.list</code> property.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-column-mask-hash" target="_blank" rel="noopener"><code>column.mask.hash._hashAlgorithm_.with.salt._salt_</code></a></td>
+<td><em>n/a</em></td>
+<td>An optional comma-separated list of regular expressions that match the fully-qualified names of character-based columns whose values should be pseudonyms in the change event message values with a field value consisting of the hashed value using the algorithm <code>*hashAlgorithm*</code> and salt <code>*salt*</code>. Based on the used hash function referential integrity is kept while data is pseudonymized. Supported hash functions are described in the <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/StandardNames.html#MessageDigest" target="_blank" rel="noopener">MessageDigest section</a> of the Java Cryptography Architecture Standard Algorithm Name Documentation. The hash is automatically shortened to the length of the column.Multiple properties with different lengths can be used in a single configuration, although in each the length must be a positive integer or zero. Fully-qualified names for columns are of the form <em>schemaName</em>.<em>tableName</em>.<em>columnName</em>.Example:<code>column.mask.hash.SHA-256.with.salt.CzQMA0cB5K = dbo.orders.customerName, dbo.shipment.customerName</code>where <code>CzQMA0cB5K</code> is a randomly selected salt.Note: Depending on the <code>*hashAlgorithm*</code> used, the <code>*salt*</code> selected and the actual data set, the resulting masked data set may not be completely anonymized.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-time-precision-mode" target="_blank" rel="noopener"><code>time.precision.mode</code></a></td>
+<td><code>adaptive</code></td>
+<td>Time, date, and timestamps can be represented with different kinds of precision, including: <code>adaptive</code> (the default) captures the time and timestamp values exactly as in the database using either millisecond, microsecond, or nanosecond precision values based on the database column’s type; or <code>connect</code> always represents time and timestamp values using Kafka Connect’s built-in representations for Time, Date, and Timestamp, which uses millisecond precision regardless of the database columns’ precision. See <a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-temporal-values" target="_blank" rel="noopener">temporal values</a>.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-decimal-handling-mode" target="_blank" rel="noopener"><code>decimal.handling.mode</code></a></td>
+<td><code>precise</code></td>
+<td>Specifies how the connector should handle values for <code>DECIMAL</code> and <code>NUMERIC</code> columns:  <code>precise</code> (the default) represents them precisely using <code>java.math.BigDecimal</code> values represented in change events in a binary form.  <code>double</code> represents them using <code>double</code> values, which may result in a loss of precision but is easier to use.  <code>string</code> encodes values as formatted strings, which is easy to consume but semantic information about the real type is lost.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-include-schema-changes" target="_blank" rel="noopener"><code>include.schema.changes</code></a></td>
+<td><code>true</code></td>
+<td>Boolean value that specifies whether the connector should publish changes in the database schema to a Kafka topic with the same name as the database server ID. Each schema change is recorded with a key that contains the database name and a value that is a JSON structure that describes the schema update. This is independent of how the connector internally records database history. The default is <code>true</code>.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-tombstones-on-delete" target="_blank" rel="noopener"><code>tombstones.on.delete</code></a></td>
+<td><code>true</code></td>
+<td>Controls whether a <em>delete</em> event is followed by a tombstone event.  <code>true</code> - a delete operation is represented by a <em>delete</em> event and a subsequent tombstone event.  <code>false</code> - only a <em>delete</em> event is emitted.  After a source record is deleted, emitting a tombstone event (the default behavior) allows Kafka to completely delete all events that pertain to the key of the deleted row in case <a href="https://kafka.apache.org/documentation/#compaction" target="_blank" rel="noopener">log compaction</a> is enabled for the topic.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-column-truncate-to-length-chars" target="_blank" rel="noopener"><code>column.truncate.to._length_.chars</code></a></td>
+<td><em>n/a</em></td>
+<td>An optional comma-separated list of regular expressions that match the fully-qualified names of character-based columns whose values should be truncated in the change event message values if the field values are longer than the specified number of characters. Multiple properties with different lengths can be used in a single configuration, although in each the length must be a positive integer. Fully-qualified names for columns are of the form <em>schemaName</em>.<em>tableName</em>.<em>columnName</em>.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-column-mask-with-length-chars" target="_blank" rel="noopener"><code>column.mask.with._length_.chars</code></a></td>
+<td><em>n/a</em></td>
+<td>An optional comma-separated list of regular expressions that match the fully-qualified names of character-based columns whose values should be replaced in the change event message values with a field value consisting of the specified number of asterisk (<code>*</code>) characters. Multiple properties with different lengths can be used in a single configuration, although in each the length must be a positive integer or zero. Fully-qualified names for columns are of the form <em>schemaName</em>.<em>tableName</em>.<em>columnName</em>.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-column-propagate-source-type" target="_blank" rel="noopener"><code>column.propagate.source.type</code></a></td>
+<td><em>n/a</em></td>
+<td>An optional comma-separated list of regular expressions that match the fully-qualified names of columns whose original type and length should be added as a parameter to the corresponding field schemas in the emitted change messages. The schema parameters <code>__debezium.source.column.type</code>, <code>__debezium.source.column.length</code> and <code>__debezium.source.column.scale</code> is used to propagate the original type name and length (for variable-width types), respectively. Useful to properly size corresponding columns in sink databases. Fully-qualified names for columns are of the form <em>schemaName</em>.<em>tableName</em>.<em>columnName</em>.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-datatype-propagate-source-type" target="_blank" rel="noopener"><code>datatype.propagate.source.type+</code></a></td>
+<td><em>n/a</em></td>
+<td>An optional comma-separated list of regular expressions that match the database-specific data type name of columns whose original type and length should be added as a parameter to the corresponding field schemas in the emitted change messages. The schema parameters <code>__debezium.source.column.type</code>, <code>__debezium.source.column.length</code> and <code>__debezium.source.column.scale</code> will be used to propagate the original type name and length (for variable-width types), respectively. Useful to properly size corresponding columns in sink databases. Fully-qualified data type names are of the form <em>schemaName</em>.<em>tableName</em>.<em>typeName</em>. See <a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-data-types" target="_blank" rel="noopener">SQL Server data types</a> for the list of SQL Server-specific data type names.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-message-key-columns" target="_blank" rel="noopener"><code>message.key.columns</code></a></td>
+<td><em>n/a</em></td>
+<td>A semi-colon list of regular expressions that match fully-qualified tables and columns to map a primary key. Each item (regular expression) must match the fully-qualified <code>&lt;fully-qualified table&gt;:&lt;a comma-separated list of columns&gt;</code> representing the custom key. Fully-qualified tables could be defined as <em>schemaName</em>.<em>tableName</em>.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-binary-handling-mode" target="_blank" rel="noopener"><code>binary.handling.mode</code></a></td>
+<td>bytes</td>
+<td>Specifies how binary (<code>binary</code>, <code>varbinary</code>) columns should be represented in change events, including: <code>bytes</code> represents binary data as byte array (default), <code>base64</code> represents binary data as base64-encoded String, <code>hex</code> represents binary data as hex-encoded (base16) String</td>
+</tr>
+<tr>
+<td>database.include.list</td>
+<td></td>
+<td>仅监控哪个库的更改，默认监控所有数据库，可配置为正则表达式</td>
+</tr>
+<tr>
+<td>database.exclude.list</td>
+<td></td>
+<td>不监控哪个库的更改，不能和database.include.list同时使用</td>
+</tr>
+</tbody></table>
+<p>以下高级配置属性具有良好的默认设置，可以在大多数情况下使用，因此很少需要在连接器的配置中指定。</p>
+<table>
+<thead>
+<tr>
+<th><strong>Property</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-snapshot-mode" target="_blank" rel="noopener"><code>snapshot.mode</code></a></td>
+<td><em>initial</em></td>
+<td>A mode for taking an initial snapshot of the structure and optionally data of captured tables. Once the snapshot is complete, the connector will continue reading change events from the database’s redo logs. The following values are supported:<code>initial</code>: Takes a snapshot of structure and data of captured tables; useful if topics should be populated with a complete representation of the data from the captured tables. <code>initial_only</code>: Takes a snapshot of structure and data like <code>initial</code> but instead does not transition into streaming changes once the snapshot has completed. <code>schema_only</code>: Takes a snapshot of the structure of captured tables only; useful if only changes happening from now onwards should be propagated to topics.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-snapshot-include-collection-list" target="_blank" rel="noopener"><code>snapshot.include.collection.list</code></a></td>
+<td>All tables specified in <code>table.include.list</code></td>
+<td>An optional, comma-separated list of regular expressions that match names of <strong>fully-qualified</strong> table names (<code>&lt;db-name&gt;.&lt;schema-name&gt;.&lt;name&gt;</code>) included in <code>table.include.list</code> for which you <strong>want</strong> to take the snapshot.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-snapshot-isolation-mode" target="_blank" rel="noopener"><code>snapshot.isolation.mode</code></a></td>
+<td><em>repeatable_read</em></td>
+<td>Mode to control which transaction isolation level is used and how long the connector locks tables that are designated for capture. The following values are supported:<code>read_uncommitted``read_committed``repeatable_read``snapshot``exclusive</code> (<code>exclusive</code> mode uses repeatable read isolation level, however, it takes the exclusive lock on all tables to be read). The <code>snapshot</code>, <code>read_committed</code> and <code>read_uncommitted</code> modes do not prevent other transactions from updating table rows during initial snapshot. The <code>exclusive</code> and <code>repeatable_read</code> modes do prevent concurrent updates. Mode choice also affects data consistency. Only <code>exclusive</code> and <code>snapshot</code> modes guarantee full consistency, that is, initial snapshot and streaming logs constitute a linear history. In case of <code>repeatable_read</code> and <code>read_committed</code> modes, it might happen that, for instance, a record added appears twice - once in initial snapshot and once in streaming phase. Nonetheless, that consistency level should do for data mirroring. For <code>read_uncommitted</code> there are no data consistency guarantees at all (some data might be lost or corrupted).</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-event-processing-failure-handling-mode" target="_blank" rel="noopener"><code>event.processing.failure.handling.mode</code></a></td>
+<td><code>fail</code></td>
+<td>Specifies how the connector should react to exceptions during processing of events. <code>fail</code> will propagate the exception (indicating the offset of the problematic event), causing the connector to stop. <code>warn</code> will cause the problematic event to be skipped and the offset of the problematic event to be logged. <code>skip</code> will cause the problematic event to be skipped.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-poll-interval-ms" target="_blank" rel="noopener"><code>poll.interval.ms</code></a></td>
+<td><code>1000</code></td>
+<td>Positive integer value that specifies the number of milliseconds the connector should wait during each iteration for new change events to appear. Defaults to 1000 milliseconds, or 1 second.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-max-queue-size" target="_blank" rel="noopener"><code>max.queue.size</code></a></td>
+<td><code>8192</code></td>
+<td>Positive integer value that specifies the maximum size of the blocking queue into which change events read from the database log are placed before they are written to Kafka. This queue can provide backpressure to the CDC table reader when, for example, writes to Kafka are slower or if Kafka is not available. Events that appear in the queue are not included in the offsets periodically recorded by this connector. Defaults to 8192, and should always be larger than the maximum batch size specified in the <code>max.batch.size</code> property.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-max-batch-size" target="_blank" rel="noopener"><code>max.batch.size</code></a></td>
+<td><code>2048</code></td>
+<td>Positive integer value that specifies the maximum size of each batch of events that should be processed during each iteration of this connector. Defaults to 2048.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-heartbeat-interval-ms" target="_blank" rel="noopener"><code>heartbeat.interval.ms</code></a></td>
+<td><code>0</code></td>
+<td>Controls how frequently heartbeat messages are sent. This property contains an interval in milliseconds that defines how frequently the connector sends messages to a heartbeat topic. The property can be used to confirm whether the connector is still receiving change events from the database. You also should leverage heartbeat messages in cases where only records in non-captured tables are changed for a longer period of time. In such situation the connector would proceed to read the log from the database but never emit any change messages into Kafka, which in turn means that no offset updates are committed to Kafka. This may result in more change events to be re-sent after a connector restart. Set this parameter to <code>0</code> to not send heartbeat messages at all. Disabled by default.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-heartbeat-topics-prefix" target="_blank" rel="noopener"><code>heartbeat.topics.prefix</code></a></td>
+<td><code>__debezium-heartbeat</code></td>
+<td>Controls the naming of the topic to which heartbeat messages are sent. The topic is named according to the pattern <code>&lt;heartbeat.topics.prefix&gt;.&lt;server.name&gt;</code>.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-snapshot-delay-ms" target="_blank" rel="noopener"><code>snapshot.delay.ms</code></a></td>
+<td></td>
+<td>An interval in milli-seconds that the connector should wait before taking a snapshot after starting up; Can be used to avoid snapshot interruptions when starting multiple connectors in a cluster, which may cause re-balancing of connectors.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-snapshot-fetch-size" target="_blank" rel="noopener"><code>snapshot.fetch.size</code></a></td>
+<td><code>2000</code></td>
+<td>Specifies the maximum number of rows that should be read in one go from each table while taking a snapshot. The connector will read the table contents in multiple batches of this size. Defaults to 2000.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-query-fetch-size" target="_blank" rel="noopener"><code>query.fetch.size</code></a></td>
+<td></td>
+<td>Specifies the number of rows that will be fetched for each database round-trip of a given query. Defaults to the JDBC driver’s default fetch size.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-snapshot-lock-timeout-ms" target="_blank" rel="noopener"><code>snapshot.lock.timeout.ms</code></a></td>
+<td><code>10000</code></td>
+<td>An integer value that specifies the maximum amount of time (in milliseconds) to wait to obtain table locks when performing a snapshot. If table locks cannot be acquired in this time interval, the snapshot will fail (also see <a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-snapshots" target="_blank" rel="noopener">snapshots</a>). When set to <code>0</code> the connector will fail immediately when it cannot obtain the lock. Value <code>-1</code> indicates infinite waiting.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-snapshot-select-statement-overrides" target="_blank" rel="noopener"><code>snapshot.select.statement.overrides</code></a></td>
+<td></td>
+<td>Controls which rows from tables are included in snapshot. This property contains a comma-separated list of fully-qualified tables <em>(SCHEMA_NAME.TABLE_NAME)</em>. Select statements for the individual tables are specified in further configuration properties, one for each table, identified by the id <code>snapshot.select.statement.overrides.[SCHEMA_NAME].[TABLE_NAME]</code>. The value of those properties is the SELECT statement to use when retrieving data from the specific table during snapshotting. <em>A possible use case for large append-only tables is setting a specific point where to start (resume) snapshotting, in case a previous snapshotting was interrupted.</em> <strong>Note</strong>: This setting has impact on snapshots only. Events captured during log reading are not affected by it.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-source-struct-version" target="_blank" rel="noopener"><code>source.struct.version</code></a></td>
+<td>v2</td>
+<td>Schema version for the <code>source</code> block in CDC events; Debezium 0.10 introduced a few breaking changes to the structure of the <code>source</code> block in order to unify the exposed structure across all the connectors. By setting this option to <code>v1</code> the structure used in earlier versions can be produced. Note that this setting is not recommended and is planned for removal in a future Debezium version.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-sanitize-field-names" target="_blank" rel="noopener"><code>sanitize.field.names</code></a></td>
+<td><code>true</code> when connector configuration explicitly specifies the <code>key.converter</code> or <code>value.converter</code> parameters to use Avro, otherwise defaults to <code>false</code>.</td>
+<td>Whether field names are sanitized to adhere to Avro naming requirements. See <a href="https://debezium.io/documentation/reference/configuration/avro.html#avro-naming" target="_blank" rel="noopener">Avro naming</a> for more details.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-database-server-timezone" target="_blank" rel="noopener"><code>database.server.timezone</code></a></td>
+<td></td>
+<td>Timezone of the server.This property defines the timezone of the transaction timestamp (<code>ts_ms</code>) that is retrieved from the server (which is actually not zoned). By default, the value is unset. Set a value for the property only when running on SQL Server 2014 or older, and the database server and the JVM running the Debezium connector use different timezones.When unset, default behavior is to use the timezone of the VM running the Debezium connector. In this case, when running on on SQL Server 2014 or older and using different timezones on server and the connector, incorrect ts_ms values may be produced. Possible values include “Z”, “UTC”, offset values like “+02:00”, short zone ids like “CET”, and long zone ids like “Europe/Paris”.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-provide-transaction-metadata" target="_blank" rel="noopener"><code>provide.transaction.metadata</code></a></td>
+<td><code>false</code></td>
+<td>When set to <code>true</code> Debezium generates events with transaction boundaries and enriches data events envelope with transaction metadata.See <a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-transaction-metadata" target="_blank" rel="noopener">Transaction Metadata</a> for additional details.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-retriable-restart-connector-wait-ms" target="_blank" rel="noopener"><code>retriable.restart.connector.wait.ms</code></a></td>
+<td>10000 (10 seconds)</td>
+<td>The number of milli-seconds to wait before restarting a connector after a retriable error occurs.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-skipped-operations" target="_blank" rel="noopener"><code>skipped.operations</code></a></td>
+<td></td>
+<td>comma-separated list of operation types that will be skipped during streaming. The operations include: <code>c</code> for inserts/create, <code>u</code> for updates, and <code>d</code> for deletes. By default, no operations are skipped.</td>
+</tr>
+<tr>
+<td><a href="https://debezium.io/documentation/reference/connectors/sqlserver.html#sqlserver-property-signal-data-collection" target="_blank" rel="noopener"><code>signal.data.collection</code></a></td>
+<td></td>
+<td>Fully-qualified name of the data collection that is used to send <a href="https://debezium.io/documentation/reference/configuration/signalling.html" target="_blank" rel="noopener">signals</a> to the connector. The name format is <em>database_name.schema-name.table-name</em>.</td>
+</tr>
+</tbody></table>
+<p>Debezium 1.3.0 以后把关于 “白名单” 与 “黑名单”的一些术语进行了修改</p>
+<table>
+<thead>
+<tr>
+<th>旧名称</th>
+<th>新名称</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>database.whitelist</code></td>
+<td><code>database.include.list</code></td>
+</tr>
+<tr>
+<td><code>database.blacklist</code></td>
+<td><code>database.exclude.list</code></td>
+</tr>
+<tr>
+<td><code>schema.whitelist</code></td>
+<td><code>schema.include.list</code></td>
+</tr>
+<tr>
+<td><code>schema.blacklist</code></td>
+<td><code>schema.exclude.list</code></td>
+</tr>
+<tr>
+<td><code>table.whitelist</code></td>
+<td><code>table.include.list</code></td>
+</tr>
+<tr>
+<td><code>table.blacklist</code></td>
+<td><code>table.exclude.list</code></td>
+</tr>
+<tr>
+<td><code>column.whitelist</code></td>
+<td><code>column.include.list</code></td>
+</tr>
+<tr>
+<td><code>column.blacklist</code></td>
+<td><code>column.exclude.list</code></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+
+            </article>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/sqlserver/">sqlserver</a>
+                    
+                      <a class="hover-with-bg" href="/categories/sqlserver/cdc/">cdc</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/sqlserver/">sqlserver</a>
+                    
+                      <a class="hover-with-bg" href="/tags/debezium/">debezium</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/2021/05/31/docker%E5%AE%89%E8%A3%85sqlserver%E5%B9%B6%E5%90%AF%E5%8A%A8%E4%BB%A3%E7%90%86/">
+                        <span class="hidden-mobile">dokcer安装并开启SQL Server代理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <div class="comments" id="comments">
+                
+                
+
+              </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/main.js" ></script>
+
+
+  <script  src="/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+  
+    <!-- Baidu Analytics -->
+    <script defer>
+      var _hmt = _hmt || [];
+      (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?04045a99060c6e71d4b52a40a48bc23e";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "debezium sqlserver配置&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

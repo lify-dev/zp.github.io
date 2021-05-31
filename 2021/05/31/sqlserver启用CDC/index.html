@@ -17,7 +17,7 @@
   <meta name="description" content="">
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
-  <title>Hello World - Hexo</title>
+  <title>sqlserver启用CDC - Hexo</title>
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
 <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
@@ -132,8 +132,8 @@
               
                 <div class="mt-3 post-meta">
                   <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-                  <time datetime="2020-05-26 15:22">
-                    2020年5月26日 下午
+                  <time datetime="2021-05-31 00:00">
+                    2021年5月31日 凌晨
                   </time>
                 </div>
               
@@ -143,7 +143,7 @@
                   
                   <span class="post-meta mr-2">
                     <i class="iconfont icon-chart"></i>
-                    73 字
+                    538 字
                   </span>
                 
 
@@ -153,7 +153,7 @@
                       <i class="iconfont icon-clock-fill"></i>
                     
                     
-                    1
+                    6
                      分钟
                   </span>
                 
@@ -182,19 +182,47 @@
           <div class="post-content mx-auto" id="post">
             
             <article class="markdown-body">
-              <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><pre><code class="hljs bash">$ hexo new <span class="hljs-string">"My New Post"</span></code></pre>
+              <h1 id="sqlserver-启用-cdc"><a href="#sqlserver-启用-cdc" class="headerlink" title="sqlserver 启用 cdc"></a>sqlserver 启用 cdc</h1><p><strong>要启动cdc必须先开启SQL Server代理</strong></p>
+<p><strong>启动数据库捕获</strong></p>
+<pre><code class="hljs sql"><span class="hljs-comment">-- 开启cdc</span>
+<span class="hljs-keyword">USE</span> [databaseName]
+<span class="hljs-keyword">EXECUTE</span> sys.sp_cdc_enable_db
+<span class="hljs-keyword">GO</span>
+<span class="hljs-comment">-- 如果开启数据库捕获报错误:15517，使用下面的方法处理</span>
+<span class="hljs-keyword">ALTER</span> AUTHORIZATION <span class="hljs-keyword">ON</span> <span class="hljs-keyword">DATABASE</span>::[databaseName] <span class="hljs-keyword">TO</span> [sa]
 
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><pre><code class="hljs bash">$ hexo server</code></pre>
+<span class="hljs-comment">-- 查看是否设置成功，1代表开启cdc</span>
+<span class="hljs-keyword">SELECT</span> is_cdc_enabled  <span class="hljs-keyword">FROM</span> SYS.databases <span class="hljs-keyword">WHERE</span> <span class="hljs-keyword">name</span>=<span class="hljs-string">'databaseName'</span></code></pre>
 
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><pre><code class="hljs bash">$ hexo generate</code></pre>
 
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><pre><code class="hljs bash">$ hexo deploy</code></pre>
 
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+<p><strong>设置跟踪表</strong></p>
+<p>为当前数据库中指定的源表启用变更数据捕获。对表启用变更数据捕获时，应用于此表的每个数据操纵语言 (DML) 操作的记录都将写入事务日志中。变更数据捕获进程将从日志中检索此信息，并将其写入可通过使用一组函数访问的更改表中。</p>
+<p><strong>格式：</strong></p>
+<pre><code class="hljs sql"><span class="hljs-keyword">USE</span> databaseName;
+GO
+EXEC sys.sp_cdc_enable_table
+@source_schema ='dbo', <span class="hljs-comment">--表所属的架构名</span>
+@source_name='t_student',	<span class="hljs-comment">--  被监控的数据表 </span>
+@role_name=null, <span class="hljs-comment">-- 是用于控制更改数据访问的数据库角色的名称。</span>
+@capture_instance=NULL, <span class="hljs-comment">-- 是用于命名变更数据捕获对象的捕获实例的名称，这个名称在后面的存储过程和函数中需要经常用到。</span>
+@supports_net_changes=1, <span class="hljs-comment">-- 指示是否对此捕获实例启用净更改查询支持如果此表有主键，或者有已使用 @index_name 参数进行标识的唯一索引，则此参数的默认值为 1。否则，此参数默认为 0。</span>
+@index_name=null, <span class="hljs-comment">-- 用于唯一标识源表中的行的唯一索引的名称。index_name 为 sysname，并且可以为 NULL。如果指定，则 index_name 必须是源表的唯一有效索引。如果指定 index_name，则标识的索引列优先于任何定义的主键列，就像表的唯一行标识符一样。</span>
+@captured_column_list=null, <span class="hljs-comment">-- 被监控的列，NULL时监控所有列</span>
+@filegroup_name=default, <span class="hljs-comment">-- 是要用于为捕获实例创建的更改表的文件组。</span>
+@allow_partition_switch=1; <span class="hljs-comment">-- 指示是否可以对启用了变更数据捕获的表执行 ALTER TABLE 的 SWITCH PARTITION 命令。allow_partition_switch 为 bit，默认值为 1。</span>
+
+<span class="hljs-comment">-- 查询表是否启动跟踪,值为1标示已启动</span>
+<span class="hljs-keyword">SELECT</span> is_tracked_by_cdc  <span class="hljs-keyword">FROM</span> SYS.tables <span class="hljs-keyword">WHERE</span> <span class="hljs-keyword">name</span>=<span class="hljs-string">'t_student'</span></code></pre>
+
+<p><strong>禁用表</strong></p>
+<pre><code class="hljs sql"><span class="hljs-keyword">USE</span> hellodb;
+GO
+EXEC sys.sp_cdc_disable_table  
+    @source_schema = 'dbo',  
+    @source_name = 't_student',  
+    @capture_instance = 'all';</code></pre>
+
 
             </article>
             <hr>
@@ -211,15 +239,21 @@
                   <div class="post-prev col-6">
                     
                     
-                      <a href="/2021/05/31/sqlserver%E5%90%AF%E7%94%A8CDC/">
+                      <a href="/2021/05/31/docker%E5%AE%89%E8%A3%85sqlserver%E5%B9%B6%E5%90%AF%E5%8A%A8%E4%BB%A3%E7%90%86/">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">sqlserver启用CDC</span>
+                        <span class="hidden-mobile">dokcer安装并开启SQL Server代理</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
                   </div>
                   <div class="post-next col-6">
                     
+                    
+                      <a href="/2020/05/26/hello-world/">
+                        <span class="hidden-mobile">Hello World</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
                     
                   </div>
                 </div>
@@ -387,7 +421,7 @@
     var typed = new Typed('#subtitle', {
       strings: [
         '  ',
-        "Hello World&nbsp;",
+        "sqlserver启用CDC&nbsp;",
       ],
       cursorChar: "_",
       typeSpeed: 70,
